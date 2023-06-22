@@ -103,6 +103,8 @@ You can also use =M-x auto-package-update-now= to update right now!
 	(evil-mode 1)
 	(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
 	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+	(define-key evil-insert-state-map (kbd "C-y") 'evil-paste-after)
+	(define-key evil-normal-state-map (kbd "C-y") 'evil-paste-after)
 
 	;; Use visual line motions even outside of visual-line-mode buffers
 	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
@@ -302,7 +304,7 @@ zsh and bash can also be seclected as default
 			  :ensure t
 			  :bind
 			  (:map global-map
-					("C-`" . vterm-toggle))
+					("C-`" . vterm-toggle)) ;; I am guilty for this using Vs code bind.
 			  :config
 			  (setq shell-file-name "/bin/fish"
 		vterm-max-scrollback 5000))
