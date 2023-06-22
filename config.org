@@ -90,7 +90,6 @@ You can also use =M-x auto-package-update-now= to update right now!
 	(auto-package-update-at-time "09:00"))
 #+end_src
 
-
 ** Evil mode
 #+begin_src emacs-lisp
   (use-package evil
@@ -164,6 +163,7 @@ You can also use =M-x auto-package-update-now= to update right now!
 	  "fd" '(dired :wk "Open dired"))
 		)
 #+end_src
+** Outline mode keys
 ** Undo-Tree
 #+begin_src emacs-lisp
   (use-package undo-tree
@@ -200,7 +200,7 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
     :config
     (doom-themes-org-config)
     (doom-themes-visual-bell-config))
-    (load-theme 'doom-one t)
+    (load-theme 'doom-badger t)
 #+end_src
 
 ** Icons
@@ -237,6 +237,53 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
 			    (projects . 5))))
 #+end_src
 
+** imenu-list
+#+begin_src emacs-lisp
+  (use-package imenu-list
+	:ensure t
+	:bind
+	(:map global-map
+	  ("C-c i i" . imenu-list-smart-toggle)
+	  ("C-c i d" . imenu-list-display-entry))
+	:config
+	(setq imenu-list-focus-after-activation t)
+	(setq imenu-list-size 0.5))
+  (my-leader-keys
+	"i" '(:ignore t :wk "imenu")
+	"id" '(imenu-list-display-entry :ek "Display entry")
+	"it" '(imenu-list-smart-toggle :wk "Imenu toggle"))
+#+end_src
+** treemacs
+#+begin_src emacs-lisp
+  (use-package treemacs
+	:ensure t
+	:defer t
+	:config
+	(setq treemacs-hide-dot-git-directory t)
+	(treemacs-follow-mode t)
+	(treemacs-fringe-indicator-mode 'always)
+	:bind
+	(:map global-map
+	  ("M-0" . treemacs-seclect-window)
+	  ("C-c t t" . treemacs)
+	  ("C-c t f" . treemacs-find-file)
+	  ("C-c t a" . treemacs-add-project-to-workspace)
+	  ("C-c t r" . treemacs-rename-project)
+	  ("C-c t C-t" . treemacs-find-tag)))
+
+  (use-package treemacs-projectile
+	:after (treemacs projectile)
+	:ensure t)
+
+  (use-package treemacs-icons-dired
+	:hook (dired-mode . treemacs-icons-dired-enable-once)
+	:ensure t)
+
+  (use-package treemacs-magit
+	:after (treemacs magit)
+	:ensure t)
+
+#+end_src
 ** Projectile
 #+begin_src emacs-lisp
   (use-package projectile
@@ -251,11 +298,14 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
 ** vterm
 zsh and bash can also be seclected as default
 #+begin_src emacs-lisp
-  (use-package vterm
-	:ensure t
-	:config
-	(setq shell-file-name "/bin/fish"
-	  vterm-max-scrollback 5000))
+	(use-package vterm
+			  :ensure t
+			  :bind
+			  (:map global-map
+					("C-`" . vterm-toggle))
+			  :config
+			  (setq shell-file-name "/bin/fish"
+		vterm-max-scrollback 5000))
 #+end_src
 
 vterm-toggle toggles between the vterm buffer and whatever buffer you are editing.
@@ -651,6 +701,23 @@ set latex master to nil to prevent compile in other file want the main.tex file 
 	  "H" 'dired-hide-dotfiles-mode))
 #+end_src
 
+* Outline mode
+#+begin_src emacs-lisp
+  (bind-keys :map global-map
+				 ;; motion
+				 ("C-c o p" . outline-previous-visible-heading)
+				 ("C-c o n" . outline-next-visible-heading)
+				 ("C-c o f" . outline-forward-same-level)
+				 ("C-c o b" . outline-backward-same-level)
+				 ;; show
+				 ("C-c o C-c" . outline-cycle)
+				 ("C-c o c" . outline-cycle-buffer)
+				 ("C-c o s" . outline-show-entry)
+				 ("C-c o l" . outline-hide-sublevels)
+				 ("C-c o a" . outline-show-all)
+				 ("C-c o C-s" . outline-show-children)
+				 ("C-c o o" . outline-hide-other))
+#+end_src
 
 * Runtime Performance
 Dial the GC threshold back down so that garbage collection happens more frequently but in less time.
