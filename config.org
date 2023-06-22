@@ -1,0 +1,661 @@
+#+TITLE: My Emacs Config
+#+AUTHOR: Azmain Biswas
+
+* Settings
+
+** Scroll Bar, Tool Bar, Menu Bar
+set 1 or -1 to toggle on and off.
+#+begin_src emacs-lisp
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
+
+** Line numbers and relative line number
+#+begin_src emacs-lisp
+  ;; set type of line numbering (global variable)
+  (setq display-line-numbers-type 'relative) 
+  ;; activate line numbering in all buffers/modes
+  (global-display-line-numbers-mode) 
+#+end_src
+
+** Font
+#+begin_src emacs-lisp
+  (add-to-list 'default-frame-alist
+	       '(font . "ComicShannsMono Nerd Font Propo-14"))
+#+end_src
+
+** Zoom in and Zoom
+#+begin_src emacs-lisp
+  (global-set-key (kbd "<C-wheel-up>") 'text-scale-increase)
+  (global-set-key (kbd "<C-wheel-down>") 'text-scale-decrease)
+#+END_SRC
+
+** Some settings
+  - use =M-x= and =recentf-open-file= to open recent files.
+	- =M-n= (next-history-element) =M-p= (previous-history-element)
+#+begin_src emacs-lisp
+  (setq tab-width 4) ; or any other preferred value
+  (set-fringe-mode 10)        ; Give some breathing room
+  (defvaralias 'c-basic-offset 'tab-width)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+  (global-subword-mode 1)
+  (fringe-mode -1)
+  (recentf-mode 1) ;; recent mode one M-x recentf-open-file
+  (setq history-length 25) ;; hestiry to 25 to load faster.
+  (savehist-mode 1) ;; saving history.
+  (save-place-mode 1) ;; for remenbarring location in the file 
+  (setq use-dialog-box nil) ;; stoping Graphical UI
+  (global-auto-revert-mode 1) ;; Revert buffers when the fill cnanged
+  (setq global-auto-revert-non-file-buffers t)
+#+end_src
+
+** Paths
+#+begin_src emacs-lisp
+  (setenv "PATH" (concat (getenv "PATH") ":/home/azmain/bin"))  
+  (setq exec-path (append exec-path '("/home/azmain/bin")))
+#+end_src
+
+* Packages
+** Mapel Setup
+#+begin_src emacs-lisp
+  (require 'package)
+  (setq package-enable-at-startup nil)
+
+  (add-to-list 'package-archives
+	       '("melpa" . "https://melpa.org/packages/"))
+
+  (package-initialize)
+#+end_src
+
+** Easy Package management by use-package
+
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+#+end_src
+
+** Auto Package upgate
+You can also use =M-x auto-package-update-now= to update right now!
+#+begin_src emacs-lisp
+  (use-package auto-package-update
+	:ensure t
+	:custom
+	(auto-package-update-interval 7)
+	(auto-package-update-prompt-before-update t)
+	(auto-package-update-hide-results t)
+	:config
+	(auto-package-update-maybe)
+	(auto-package-update-at-time "09:00"))
+#+end_src
+
+
+** Evil mode
+#+begin_src emacs-lisp
+  (use-package evil
+	:ensure t
+	:init
+	(setq evil-want-integration t)
+	(setq evil-want-keybinding nil)
+	(setq evil-want-C-u-scroll t)
+	(setq evil-want-C-i-jump nil)
+	:config
+	(evil-mode 1)
+	(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+	;; Use visual line motions even outside of visual-line-mode buffers
+	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
+	(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+	(evil-set-initial-state 'messages-buffer-mode 'normal)
+	(evil-set-initial-state 'dashboard-mode 'normal))
+
+  (use-package evil-collection
+	:ensure t
+	:after evil
+	:config
+	(evil-collection-init))
+#+end_src
+
+** General Key
+#+begin_src emacs-lisp
+  ;; Make ESC quit prompts
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+  (use-package general
+		:ensure t
+		:after evil
+		:config
+		(general-evil-setup)
+		(general-auto-unbind-keys t)
+		(general-create-definer my-leader-keys
+	  :keymaps '(normal insert visual emacs)
+	  :prefix "SPC"
+	  :global-prefix "M-SPC")
+
+		(my-leader-keys
+	  "t"  '(:ignore t :which-key "toggles")
+	  "tt" '(counsel-load-theme :which-key "choose theme")
+	  "tl" '(display-line-numbers-mode :wk "Toggle line numbers")
+	  "tv" '(vterm-toggle :wk "Toggle vterm")
+	  "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/config.org")) :which-key "open config.org"))
+		(my-leader-keys
+	  "e" '(:ignore t :wk "Eshell/Evaluate")    
+	  "eb" '(eval-buffer :wk "Evaluate elisp in buffer")
+	  "eh" '(counsel-esh-history :which-key "Eshell history")
+	  "er" '(eval-region :wk "Evaluate elisp in region")
+	  "es" '(eshell :which-key "Eshell"))
+		(my-leader-keys
+	  "h" '(:ignore t :wk "Help")
+	  "hf" '(describe-function :wk "Describe function")
+	  "hv" '(describe-variable :wk "Describe variable")
+	  "hr" '((lambda () (interactive) (load-file "~/.emacs.d/init.el")) :wk "Reload emacs config"))
+		(my-leader-keys
+	  "b" '(:ignore t :wk "Buffer Options")
+	  "bj" '(ibuffer-jump :wk "Buffer Jump")
+	  "bn" '(next-buffer :wk "Next Buffer")
+	  "bp" '(previous buffer :wk "Previous Buffer"))
+		(my-leader-keys
+	  "f" '(:ignor t :wk "File")
+	  "ff" '(find-file :wk "Find file")
+	  "fr" '(recentf-open-files :wk "Open recent file")
+	  "fd" '(dired :wk "Open dired"))
+		)
+#+end_src
+** Undo-Tree
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :ensure t)
+  (undo-tree-mode t)
+#+end_src
+
+** Rainbow Delimiters
+rainbow-delimiters is useful in programming modes because it colorizes nested parentheses
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :ensure t
+    :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+** Themes
+*** catpuccin-theme
+#+begin_src emacs-lisp
+  (use-package catppuccin-theme
+    :ensure t
+    :config
+    (setq catppuccin-flavor 'mocha) ;; or 'latte, 'macchiato, or 'mocha
+    ;;(catppuccin-set-color 'base "#000000")
+    ;; (catppuccin-reload)
+    )
+#+end_src
+
+*** Doom theme
+#+begin_src emacs-lisp
+  (use-package doom-themes
+    :ensure t
+    :if window-system
+    :ensure t
+    :config
+    (doom-themes-org-config)
+    (doom-themes-visual-bell-config))
+    (load-theme 'doom-one t)
+#+end_src
+
+** Icons
+#+begin_src emacs-lisp
+  (use-package nerd-icons
+    :ensure t)
+#+end_src
+
+** mode line
+#+begin_src emacs-lisp
+  (display-battery-mode 1)
+  (display-time-mode 1)
+  (format-time-string "%I:%M %P")
+
+  (use-package doom-modeline
+	:ensure t
+	:init (doom-modeline-mode 1)
+	:custom ((doom-modeline-height 25)))
+#+end_src
+
+** Dashboard
+#+begin_src emacs-lisp
+  (use-package dashboard
+    :ensure t
+    :config
+    (dashboard-setup-startup-hook)
+    (setq dashboard-startup-banner "~/.emacs.d/logo.png")
+    (setq dashboard-banner-logo-title "I am just trying to learn code")
+    (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
+    (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
+    (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+    (setq dashboard-items '((recents  . 5)
+			    (bookmarks . 5)
+			    (projects . 5))))
+#+end_src
+
+** Projectile
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :diminish projectile-mode
+    :config (projectile-mode)
+    :custom ((projectile-completion-system 'ivy))
+    :bind-keymap
+    ("C-c p" . projectile-command-map))
+#+end_src
+
+** vterm
+zsh and bash can also be seclected as default
+#+begin_src emacs-lisp
+  (use-package vterm
+	:ensure t
+	:config
+	(setq shell-file-name "/bin/fish"
+	  vterm-max-scrollback 5000))
+#+end_src
+
+vterm-toggle toggles between the vterm buffer and whatever buffer you are editing.
+#+begin_src emacs-lisp
+  (use-package vterm-toggle
+	:ensure t
+	:after vterm
+	:config
+	(setq vterm-toggle-fullscreen-p nil)
+	(setq vterm-toggle-scope 'project)
+	(add-to-list 'display-buffer-alist
+			 '((lambda (buffer-or-name _)
+			 (let ((buffer (get-buffer buffer-or-name)))
+			   (with-current-buffer buffer
+				 (or (equal major-mode 'vterm-mode)
+				 (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
+		   (display-buffer-reuse-window display-buffer-at-bottom)
+		   ;;(display-buffer-reuse-window display-buffer-in-direction)
+		   ;;display-buffer-in-direction/direction/dedicated is added in emacs27
+		   ;;(direction . bottom)
+		   ;;(dedicated . t) ;dedicated is supported in emacs27
+		   (reusable-frames . visible)
+		   (window-height . 0.3))))
+#+end_src
+** better search and completion with ivy
+#+begin_src emacs-lisp
+  (use-package ivy
+    :ensure t
+    :diminish
+    :bind (("C-s" . swiper)
+	   :map ivy-minibuffer-map
+	   ("TAB" . ivy-alt-done)
+	   ("C-l" . ivy-alt-done)
+	   ("C-j" . ivy-next-line)
+	   ("C-n" . ivy-next-line)
+	   ("C-k" . ivy-previous-line)
+	   ("C-p" . ivy-previous-line)
+	   :map ivy-switch-buffer-map
+	   ("C-k" . ivy-previous-line)
+	   ("C-l" . ivy-done)
+	   ("C-d" . ivy-switch-buffer-kill)
+	   :map ivy-reverse-i-search-map
+	   ("C-k" . ivy-previous-line)
+	   ("C-d" . ivy-reverse-i-search-kill))
+    :config
+    (ivy-mode 1))
+
+  (use-package ivy-rich
+    :ensure t
+    :init
+    (ivy-rich-mode 1))
+
+  (use-package counsel
+    :ensure t
+    :bind (("C-M-j" . 'counsel-switch-buffer)
+	   :map minibuffer-local-map
+	   ("C-r" . 'counsel-minibuffer-history))
+    :config
+    (counsel-mode 1))
+#+end_src
+
+** Which Key
+#+begin_src emacs-lisp
+  (use-package which-key
+    :ensure t
+    :init
+    (which-key-mode))
+#+end_src
+
+** Better Bottom Bar
+#+begin_src emacs-lisp
+  (setq ido-enable-flex-matching t)
+  (setq ido-everywhere t)
+  (ido-mode 1)
+
+  (use-package ido-vertical-mode
+    :ensure t
+    :init
+    (ido-vertical-mode 1))
+  (setq ido-vertical-define-keys 'c-n-and-c-p-only)
+
+  (use-package smex
+    :ensure t
+    :init (smex-initialize)
+    :bind
+    ("M-x" . smex))
+#+end_src
+
+** org mode
+
+#+begin_src emacs-lisp
+(use-package org-bullets
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+#+end_src
+
+org-tempo is snipttis like - = tab
+<a - ’#+BEGIN_EXPORT ascii’ … ‘#+END_EXPORT
+<c - ’#+BEGIN_CENTER’ … ‘#+END_CENTER’
+<C - ’#+BEGIN_COMMENT’ … ‘#+END_COMMENT’
+<e - ’#+BEGIN_EXAMPLE’ … ‘#+END_EXAMPLE’
+<E - ’#+BEGIN_EXPORT’ … ‘#+END_EXPORT’
+<h - ’#+BEGIN_EXPORT html’ … ‘#+END_EXPORT’
+<l - ’#+BEGIN_EXPORT latex’ … ‘#+END_EXPORT’
+<q - ’#+BEGIN_QUOTE’ … ‘#+END_QUOTE’
+<s - ’#+BEGIN_SRC’ … ‘#+END_SRC’
+<v - ’#+BEGIN_VERSE’ … ‘#+END_VERSE’
+#+begin_src emacs-lisp
+    (require 'org-tempo)
+#+end_src
+** Git integration
+#+begin_src emacs-lisp
+  (use-package magit
+    :ensure t
+    :config
+    (setq magit-push-always-verify nil)
+    (setq git-commit-summary-max-length 50)
+    :bind
+    ("M-g" . magit-status))
+#+end_src
+
+
+* IDE like
+
+** Snippets
+yasnippet
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config
+    (yas-global-mode 1))
+  (setq yas-snippet-dirs
+	'("~/.emacs.d/snippets"                 ;; personal snippets add if u want
+	  ))
+#+end_src
+** Tree Sitter
+
+#+begin_src emacs-lisp
+  (use-package tree-sitter
+    :ensure t)
+
+  (use-package tree-sitter-langs
+    :ensure t)
+  ;; configaretion
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+#+end_src
+
+** LSP
+LSP with lsp-mode.
+lsp-ui is a set of UI enhancements built on top of lsp-mode which make Emacs feel even more like an IDE. 
+lsp-treemacs provides nice tree views for different aspects of your code like symbols in a file, references of a symbol, or diagnostic messages (errors and warnings) that are found in your code.
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :ensure t
+    :init  
+    (setq lsp-keymap-prefix "C-c l")
+    :hook (
+	   (python-mode . lsp)
+	   (c++-mode . lsp)
+	   (lua-mode . lsp)
+	   (c-mode . lsp)
+	   (TeX-mode  . lsp)
+	   (markdown-mode . lsp)
+	   (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp)
+
+  (use-package lsp-ui
+    :ensure t
+    :hook (lsp-mode . lsp-ui-mode)
+    :custom
+    (lsp-ui-doc-position 'bottom))
+
+  (use-package lsp-ivy
+    :ensure t)
+
+  (use-package lsp-treemacs
+    :ensure t
+    :after lsp)
+  (lsp-treemacs-sync-mode 1)
+#+end_src
+
+** Auto Complition
+
+#+begin_src emacs-lisp
+  (use-package company
+    :ensure t
+    :after lsp-mode
+    :hook (lsp-mode . company-mode)
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0))
+
+  (use-package flycheck
+    :ensure t)
+
+  (use-package company-box
+    :ensure t
+    :hook (company-mode . company-box-mode))
+#+end_src
+
+** Language Feature
+*** python
+- =C-c C-c= evaluates the current python script (or region if something is selected) in an interactive python shell. The python shell is automatically displayed aside of your script.
+- =C-RET= evaluates the current statement (current line plus the following nested lines).
+- =C-c C-z= switches between your script and the interactive shell.
+- =C-c C-d= displays documentation for the thing under cursor.
+  
+#+begin_src emacs-lisp
+  (use-package lsp-pyright
+    :ensure t
+    :hook (python-mode . (lambda ()
+			   (require 'lsp-pyright)
+			   (lsp))))  ; or lsp-deferred
+  (use-package elpy
+    :ensure t
+    :init
+    (elpy-enable))
+  ;; formater
+  (use-package python-black
+    :ensure t
+    :demand t
+    :after python
+    :hook (python-mode . python-black-on-save-mode))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package pyvenv
+	:ensure t
+	:after python-mode
+	:config
+	(pyvenv-mode 1))
+#+end_src
+
+*** TaTEX
+**** AucTex
+set latex master to nil to prevent compile in other file want the main.tex file to compiled.
+#+begin_src emacs-lisp
+  (setq-default TeX-master nil) ;; set latex master to nil
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package tex
+    :ensure auctex)
+
+  (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
+  (setq TeX-PDF-mode t
+	TeX-source-correlate-mode t
+	TeX-source-correlate-start-server t)
+
+  (add-to-list 'TeX-expand-list
+	       '("%sn" (lambda () server-name)))
+
+  (add-to-list 'TeX-view-program-list
+	       '("Zathura"
+		 ("zathura %o"
+		  (mode-io-correlate " --synctex-forward %n:0:\"%b\" -x \"emacsclient --socket-name=%sn +%{line} %{input}\""))
+		 "zathura"))
+
+  (setcar (cdr (assoc 'output-pdf TeX-view-program-selection)) "Zathura")
+#+end_src
+
+**** keybings
+#+begin_src emacs-lisp
+	  (my-leader-keys
+		"l" '(:ignore t :wk "Latex Functions")
+		"lp" '(org-latex-preview :wk "Latex Prevew of some envioment"))
+#+end_src
+**** lsp
+#+begin_src emacs-lisp
+  (setq lsp-latex-texlab-executable "/usr/bin/texlab")
+  (with-eval-after-load "tex-mode"
+    (add-hook 'tex-mode-hook 'lsp)
+    (add-hook 'latex-mode-hook 'lsp))
+
+  ;; For YaTeX
+  (with-eval-after-load "yatex"
+    (add-hook 'yatex-mode-hook 'lsp))
+
+  ;; For bibtex
+  (with-eval-after-load "bibtex"
+    (add-hook 'bibtex-mode-hook 'lsp))
+#+end_src
+
+*** Lua
+#+begin_src emacs-lisp
+  (use-package lua-mode
+    :ensure t
+    :config)
+#+end_src
+
+*** C++
+
+
+* Dired File manager
+
+*** Key Bindings
+
+**** Navigation
+
+*Emacs* / *Evil*
+- =n= / =j= - next line
+- =p= / =k= - previous line
+- =j= / =J= - jump to file in buffer
+- =RET= - select file or directory
+- =^= - go to parent directory
+- =S-RET= / =g O= - Open file in "other" window
+- =M-RET= - Show file in other window without focusing (previewing files)
+- =g o= (=dired-view-file=) - Open file but in a "preview" mode, close with =q=
+- =g= / =g r= Refresh the buffer with =revert-buffer= after changing configuration (and after filesystem changes!)
+
+**** Marking files
+
+- =m= - Marks a file
+- =u= - Unmarks a file
+- =U= - Unmarks all files in buffer
+- =* t= / =t= - Inverts marked files in buffer
+- =% m= - Mark files in buffer using regular expression
+- =*= - Lots of other auto-marking functions
+- =k= / =K= - "Kill" marked items (refresh buffer with =g= / =g r= to get them back)
+- Many operations can be done on a single file if there are no active marks!
+
+**** Copying and Renaming files
+
+- =C= - Copy marked files (or if no files are marked, the current file)
+- Copying single and multiple files
+- =U= - Unmark all files in buffer
+- =R= - Rename marked files, renaming multiple is a move!
+- =% R= - Rename based on regular expression: =^test= , =old-\&=
+
+*Power command*: =C-x C-q= (=dired-toggle-read-only=) - Makes all file names in the buffer editable directly to rename them!  Press =Z Z= to confirm renaming or =Z Q= to abort.
+
+**** Deleting files
+
+- =D= - Delete marked file
+- =d= - Mark file for deletion
+- =x= - Execute deletion for marks
+- =delete-by-moving-to-trash= - Move to trash instead of deleting permanently
+
+**** Creating and extracting archives
+
+- =Z= - Compress or uncompress a file or folder to (=.tar.gz=)
+- =c= - Compress selection to a specific file
+- =dired-compress-files-alist= - Bind compression commands to file extension
+
+**** Other common operations
+
+- =T= - Touch (change timestamp)
+- =M= - Change file mode
+- =O= - Change file owner
+- =G= - Change file group
+- =S= - Create a symbolic link to this file
+- =L= - Load an Emacs Lisp file into Emacs
+
+*** Configuration
+
+#+begin_src emacs-lisp
+  (use-package dired
+	:ensure nil
+	:commands (dired dired-jump)
+	:bind (("C-x C-j" . dired-jump))
+	:custom ((dired-listing-switches "-agho --group-directories-first"))
+	:config
+	(evil-collection-define-key 'normal 'dired-mode-map
+	  "h" 'dired-up-directory
+	  "l" 'dired-find-file))
+
+  (use-package dired-single
+	:ensure t
+	:commands (dired dired-jump))
+
+  (use-package all-the-icons-dired
+	:ensure t
+	:hook (dired-mode . all-the-icons-dired-mode))
+
+  (use-package dired-open
+	:ensure t
+	:commands (dired dired-jump)
+	:config
+	;; Doesn't work as expected!
+	;;(add-to-list 'dired-open-functions #'dired-open-xdg t)
+	(setq dired-open-extensions '(("png" . "sxiv")
+				  ("jpge" . "sxiv")
+				  ("webm" . "mpv")
+				  ("mkv" . "mpv"))))
+
+  (use-package dired-hide-dotfiles
+	:ensure t
+	:hook (dired-mode . dired-hide-dotfiles-mode)
+	:config
+	(evil-collection-define-key 'normal 'dired-mode-map
+	  "H" 'dired-hide-dotfiles-mode))
+#+end_src
+
+
+* Runtime Performance
+Dial the GC threshold back down so that garbage collection happens more frequently but in less time.
+
+#+begin_src emacs-lisp
+  ;; Make gc pauses faster by decreasing the threshold.
+  (setq gc-cons-threshold (* 2 1000 1000))
+#+end_src

@@ -1,0 +1,15 @@
+auto-save-list/
+.cache/
+elpa/
+elpy/
+transient/
+*~*
+.last-package-update-day
+*lsp*
+*.el*
+!init.el
+history
+places
+recentf
+smex-items
+*.last
