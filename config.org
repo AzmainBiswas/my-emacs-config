@@ -2,7 +2,6 @@
 #+AUTHOR: Azmain Biswas
 
 * Settings
-
 ** Scroll Bar, Tool Bar, Menu Bar
 set 1 or -1 to toggle on and off.
 #+begin_src emacs-lisp
@@ -35,8 +34,11 @@ set 1 or -1 to toggle on and off.
   - use =M-x= and =recentf-open-file= to open recent files.
 	- =M-n= (next-history-element) =M-p= (previous-history-element)
 #+begin_src emacs-lisp
+  (setq use-dialog-box nil)
+  (setq use-file-dialog nil)
+  (setq make-backup-files nil)
+  (setq auto-save-default nil)
   (setq tab-width 4) ; or any other preferred value
-  (set-fringe-mode 10)        ; Give some breathing room
   (defvaralias 'c-basic-offset 'tab-width)
   (defalias 'yes-or-no-p 'y-or-n-p)
   (global-subword-mode 1)
@@ -90,6 +92,64 @@ You can also use =M-x auto-package-update-now= to update right now!
 	(auto-package-update-at-time "09:00"))
 #+end_src
 
+** Ivy
+#+begin_src emacs-lisp
+  (use-package ivy
+    :ensure t
+    :diminish
+    :bind (
+	   :map global-map
+	   ("C-s" . counsel-grep-or-swiper)
+	   ("M-x" . counsel-M-x)
+	   ("M-y" . counsel-yank-pop)
+	   ("C-x b" . counsel-switch-buffer)
+	   ("C-c i m" . counsel-imenu)
+	   ("C-c s" . counsel-rg)
+	   ("C-x C-f" . counsel-find-file)
+	   ("C-c C-r" . ivy-resume)
+	   :map ivy-minibuffer-map
+	   ("TAB" . ivy-alt-done)
+	   ("C-l" . ivy-alt-done)
+	   ("C-j" . ivy-next-line)
+	   ("C-n" . ivy-next-line)
+	   ("C-k" . ivy-previous-line)
+	   ("C-p" . ivy-previous-line)
+	   :map ivy-switch-buffer-map
+	   ("C-k" . ivy-previous-line)
+	   ("C-l" . ivy-done)
+	   ("C-d" . ivy-switch-buffer-kill)
+	   :map ivy-reverse-i-search-map
+	   ("C-k" . ivy-previous-line)
+	   ("C-d" . ivy-reverse-i-search-kill))
+    :custom
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-count-format "(%d/%d) ")
+    (setq enable-recursive-minibuffers t)
+    :config
+    (ivy-mode 1))
+  (setq ivy-initial-inputs-alist nil)
+
+  (use-package all-the-icons-ivy-rich
+    :ensure t
+    :init (all-the-icons-ivy-rich-mode 1))
+
+  (use-package ivy-rich
+    :ensure t
+    :after ivy
+    :init
+    (ivy-rich-mode 1)
+    :custom
+    (ivy-virtual-abbreviate 'full
+			    ivy-rich-switch-buffer-align-virtual-buffer t
+			    ivy-rich-path-style 'abbrev))
+
+  (use-package counsel
+    :ensure t
+    :custom
+    (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+    :config
+    (counsel-mode 1))
+#+end_src
 ** Evil mode
 #+begin_src emacs-lisp
   (use-package evil
@@ -104,7 +164,7 @@ You can also use =M-x auto-package-update-now= to update right now!
 	(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
 	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 	(define-key evil-insert-state-map (kbd "C-y") 'evil-paste-after)
-	(define-key evil-normal-state-map (kbd "C-y") 'evil-paste-after)
+	(define-key evil-normal-state-map (kbd "C-y") 'evil-paste-before)
 
 	;; Use visual line motions even outside of visual-line-mode buffers
 	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
@@ -126,44 +186,44 @@ You can also use =M-x auto-package-update-now= to update right now!
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
   (use-package general
-		:ensure t
-		:after evil
-		:config
-		(general-evil-setup)
-		(general-auto-unbind-keys t)
-		(general-create-definer my-leader-keys
-	  :keymaps '(normal insert visual emacs)
-	  :prefix "SPC"
-	  :global-prefix "M-SPC")
+    :ensure t
+    :after evil
+    :config
+    (general-evil-setup)
+    (general-auto-unbind-keys t)
+    (general-create-definer my-leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "M-SPC")
 
-		(my-leader-keys
-	  "t"  '(:ignore t :which-key "toggles")
-	  "tt" '(counsel-load-theme :which-key "choose theme")
-	  "tl" '(display-line-numbers-mode :wk "Toggle line numbers")
-	  "tv" '(vterm-toggle :wk "Toggle vterm")
-	  "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/config.org")) :which-key "open config.org"))
-		(my-leader-keys
-	  "e" '(:ignore t :wk "Eshell/Evaluate")    
-	  "eb" '(eval-buffer :wk "Evaluate elisp in buffer")
-	  "eh" '(counsel-esh-history :which-key "Eshell history")
-	  "er" '(eval-region :wk "Evaluate elisp in region")
-	  "es" '(eshell :which-key "Eshell"))
-		(my-leader-keys
-	  "h" '(:ignore t :wk "Help")
-	  "hf" '(describe-function :wk "Describe function")
-	  "hv" '(describe-variable :wk "Describe variable")
-	  "hr" '((lambda () (interactive) (load-file "~/.emacs.d/init.el")) :wk "Reload emacs config"))
-		(my-leader-keys
-	  "b" '(:ignore t :wk "Buffer Options")
-	  "bj" '(ibuffer-jump :wk "Buffer Jump")
-	  "bn" '(next-buffer :wk "Next Buffer")
-	  "bp" '(previous buffer :wk "Previous Buffer"))
-		(my-leader-keys
-	  "f" '(:ignor t :wk "File")
-	  "ff" '(find-file :wk "Find file")
-	  "fr" '(recentf-open-files :wk "Open recent file")
-	  "fd" '(dired :wk "Open dired"))
-		)
+    (my-leader-keys
+      "t"  '(:ignore t :which-key "toggles")
+      "tt" '(counsel-load-theme :which-key "choose theme")
+      "tl" '(display-line-numbers-mode :wk "Toggle line numbers")
+      "tv" '(vterm-toggle :wk "Toggle vterm")
+      "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/config.org")) :which-key "open config.org"))
+    (my-leader-keys
+      "e" '(:ignore t :wk "Eshell/Evaluate")    
+      "eb" '(eval-buffer :wk "Evaluate elisp in buffer")
+      "eh" '(counsel-esh-history :which-key "Eshell history")
+      "er" '(eval-region :wk "Evaluate elisp in region")
+      "es" '(eshell :which-key "Eshell"))
+    (my-leader-keys
+      "h" '(:ignore t :wk "Help")
+      "hf" '(describe-function :wk "Describe function")
+      "hv" '(describe-variable :wk "Describe variable")
+      "hr" '((lambda () (interactive) (load-file "~/.emacs.d/init.el")) :wk "Reload emacs config"))
+    (my-leader-keys
+      "b" '(:ignore t :wk "Buffer Options")
+      "bj" '(ibuffer-jump :wk "Buffer Jump")
+      "bn" '(next-buffer :wk "Next Buffer")
+      "bp" '(previous buffer :wk "Previous Buffer"))
+    (my-leader-keys
+      "f" '(:ignor t :wk "File")
+      "ff" '(counsel-find-file :wk "Find file")
+      "fr" '(counsel-recentf :wk "Open recent file")
+      "fd" '(counsel-dired :wk "Open dired"))
+    )
 #+end_src
 ** Outline mode keys
 ** Undo-Tree
@@ -181,6 +241,13 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
     :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 
+** Rainbow mode
+rainbow mode for color in hexcode
+#+begin_src emacs-lisp
+  (use-package rainbow-mode
+    :ensure t
+    :hook org-mode prog-mode)
+#+end_src
 ** Themes
 *** catpuccin-theme
 #+begin_src emacs-lisp
@@ -209,6 +276,9 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
 #+begin_src emacs-lisp
   (use-package nerd-icons
     :ensure t)
+  (use-package all-the-icons
+    :ensure t
+    :if (display-graphic-p))
 #+end_src
 
 ** mode line
@@ -249,7 +319,7 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
 	  ("C-c i d" . imenu-list-display-entry))
 	:config
 	(setq imenu-list-focus-after-activation t)
-	(setq imenu-list-size 0.5))
+	(setq imenu-list-size 0.2))
   (my-leader-keys
 	"i" '(:ignore t :wk "imenu")
 	"id" '(imenu-list-display-entry :ek "Display entry")
@@ -285,16 +355,6 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
 	:after (treemacs magit)
 	:ensure t)
 
-#+end_src
-** Projectile
-#+begin_src emacs-lisp
-  (use-package projectile
-    :ensure t
-    :diminish projectile-mode
-    :config (projectile-mode)
-    :custom ((projectile-completion-system 'ivy))
-    :bind-keymap
-    ("C-c p" . projectile-command-map))
 #+end_src
 
 ** vterm
@@ -332,41 +392,16 @@ vterm-toggle toggles between the vterm buffer and whatever buffer you are editin
 		   (reusable-frames . visible)
 		   (window-height . 0.3))))
 #+end_src
-** better search and completion with ivy
+
+** Projectile
 #+begin_src emacs-lisp
-  (use-package ivy
+  (use-package projectile
     :ensure t
-    :diminish
-    :bind (("C-s" . swiper)
-	   :map ivy-minibuffer-map
-	   ("TAB" . ivy-alt-done)
-	   ("C-l" . ivy-alt-done)
-	   ("C-j" . ivy-next-line)
-	   ("C-n" . ivy-next-line)
-	   ("C-k" . ivy-previous-line)
-	   ("C-p" . ivy-previous-line)
-	   :map ivy-switch-buffer-map
-	   ("C-k" . ivy-previous-line)
-	   ("C-l" . ivy-done)
-	   ("C-d" . ivy-switch-buffer-kill)
-	   :map ivy-reverse-i-search-map
-	   ("C-k" . ivy-previous-line)
-	   ("C-d" . ivy-reverse-i-search-kill))
-    :config
-    (ivy-mode 1))
-
-  (use-package ivy-rich
-    :ensure t
-    :init
-    (ivy-rich-mode 1))
-
-  (use-package counsel
-    :ensure t
-    :bind (("C-M-j" . 'counsel-switch-buffer)
-	   :map minibuffer-local-map
-	   ("C-r" . 'counsel-minibuffer-history))
-    :config
-    (counsel-mode 1))
+    :diminish projectile-mode
+    :config (projectile-mode)
+    :custom ((projectile-completion-system 'ivy))
+    :bind-keymap
+    ("C-c p" . projectile-command-map))
 #+end_src
 
 ** Which Key
@@ -375,25 +410,6 @@ vterm-toggle toggles between the vterm buffer and whatever buffer you are editin
     :ensure t
     :init
     (which-key-mode))
-#+end_src
-
-** Better Bottom Bar
-#+begin_src emacs-lisp
-  (setq ido-enable-flex-matching t)
-  (setq ido-everywhere t)
-  (ido-mode 1)
-
-  (use-package ido-vertical-mode
-    :ensure t
-    :init
-    (ido-vertical-mode 1))
-  (setq ido-vertical-define-keys 'c-n-and-c-p-only)
-
-  (use-package smex
-    :ensure t
-    :init (smex-initialize)
-    :bind
-    ("M-x" . smex))
 #+end_src
 
 ** org mode
@@ -470,6 +486,7 @@ lsp-treemacs provides nice tree views for different aspects of your code like sy
 	   (python-mode . lsp)
 	   (c++-mode . lsp)
 	   (lua-mode . lsp)
+	   (sh-mode . lsp)
 	   (c-mode . lsp)
 	   (TeX-mode  . lsp)
 	   (markdown-mode . lsp)
@@ -714,7 +731,8 @@ set latex master to nil to prevent compile in other file want the main.tex file 
 				 ;; show
 				 ("C-c o C-c" . outline-cycle)
 				 ("C-c o c" . outline-cycle-buffer)
-				 ("C-c o s" . outline-show-entry)
+				 ("C-c o e" . outline-show-entry)
+				 ("C-c o h" . outline-hide-entry)
 				 ("C-c o l" . outline-hide-sublevels)
 				 ("C-c o a" . outline-show-all)
 				 ("C-c o C-s" . outline-show-children)
