@@ -21,7 +21,7 @@ set 1 or -1 to toggle on and off.
 ** Font
 #+begin_src emacs-lisp
   (add-to-list 'default-frame-alist
-	       '(font . "ComicShannsMono Nerd Font Propo-14"))
+	       '(font . "JetBrainsMono Nerd Font Mono-14"))
 #+end_src
 
 ** Zoom in and Zoom
@@ -255,8 +255,8 @@ rainbow mode for color in hexcode
     :ensure t
     :config
     (setq catppuccin-flavor 'mocha) ;; or 'latte, 'macchiato, or 'mocha
-    ;;(catppuccin-set-color 'base "#000000")
-    ;; (catppuccin-reload)
+    (catppuccin-set-color 'base "#000000")
+    (catppuccin-reload)
     )
 #+end_src
 
@@ -269,7 +269,7 @@ rainbow mode for color in hexcode
     :config
     (doom-themes-org-config)
     (doom-themes-visual-bell-config))
-    (load-theme 'doom-badger t)
+    ;;(load-theme 'doom-homage-black t)
 #+end_src
 
 ** Icons
@@ -692,6 +692,8 @@ set latex master to nil to prevent compile in other file want the main.tex file 
 	(evil-collection-define-key 'normal 'dired-mode-map
 	  "h" 'dired-up-directory
 	  "l" 'dired-find-file))
+  
+  (define-key dired-mode-map "c" 'find-file)
 
   (use-package dired-single
 	:ensure t
