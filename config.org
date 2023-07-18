@@ -245,8 +245,9 @@ rainbow-delimiters is useful in programming modes because it colorizes nested pa
 rainbow mode for color in hexcode
 #+begin_src emacs-lisp
   (use-package rainbow-mode
-    :ensure t
-    :hook org-mode prog-mode)
+		:ensure t
+		:hook org-mode prog-mode)
+  (setq rainbow-mode t)
 #+end_src
 ** Themes
 *** catpuccin-theme
@@ -256,7 +257,7 @@ rainbow mode for color in hexcode
     :config
     (setq catppuccin-flavor 'mocha) ;; or 'latte, 'macchiato, or 'mocha
     (catppuccin-set-color 'base "#000000")
-    (catppuccin-reload)
+    ;;(catppuccin-reload)
     )
 #+end_src
 
@@ -269,7 +270,7 @@ rainbow mode for color in hexcode
     :config
     (doom-themes-org-config)
     (doom-themes-visual-bell-config))
-    ;;(load-theme 'doom-homage-black t)
+    (load-theme 'doom-homage-black t)
 #+end_src
 
 ** Icons
@@ -328,14 +329,14 @@ rainbow mode for color in hexcode
 ** treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
-	:ensure t
-	:defer t
-	:config
-	(setq treemacs-hide-dot-git-directory t)
-	(treemacs-follow-mode t)
-	(treemacs-fringe-indicator-mode 'always)
-	:bind
-	(:map global-map
+    :ensure t
+    :defer t
+    :config
+    (setq treemacs-hide-dot-git-directory t)
+    (treemacs-follow-mode t)
+    (treemacs-fringe-indicator-mode 'always)
+    :bind
+    (:map global-map
 	  ("M-0" . treemacs-seclect-window)
 	  ("C-c t t" . treemacs)
 	  ("C-c t f" . treemacs-find-file)
@@ -344,46 +345,46 @@ rainbow mode for color in hexcode
 	  ("C-c t C-t" . treemacs-find-tag)))
 
   (use-package treemacs-projectile
-	:after (treemacs projectile)
-	:ensure t)
+    :after (treemacs projectile)
+    :ensure t)
 
   (use-package treemacs-icons-dired
-	:hook (dired-mode . treemacs-icons-dired-enable-once)
-	:ensure t)
+    :hook (dired-mode . treemacs-icons-dired-enable-once)
+    :ensure t)
 
   (use-package treemacs-magit
-	:after (treemacs magit)
-	:ensure t)
+    :after (treemacs magit)
+    :ensure t)
 
 #+end_src
 
 ** vterm
 zsh and bash can also be seclected as default
 #+begin_src emacs-lisp
-	(use-package vterm
-			  :ensure t
-			  :bind
-			  (:map global-map
-					("C-`" . vterm-toggle)) ;; I am guilty for this using Vs code bind.
-			  :config
-			  (setq shell-file-name "/bin/fish"
-		vterm-max-scrollback 5000))
+  (use-package vterm
+    :ensure t
+    :bind
+    (:map global-map
+	  ("C-`" . vterm-toggle)) ;; I am guilty for this using Vs code bind.
+    :config
+    (setq shell-file-name "/bin/fish"
+	  vterm-max-scrollback 5000))
 #+end_src
 
 vterm-toggle toggles between the vterm buffer and whatever buffer you are editing.
 #+begin_src emacs-lisp
   (use-package vterm-toggle
-	:ensure t
-	:after vterm
-	:config
-	(setq vterm-toggle-fullscreen-p nil)
-	(setq vterm-toggle-scope 'project)
-	(add-to-list 'display-buffer-alist
-			 '((lambda (buffer-or-name _)
-			 (let ((buffer (get-buffer buffer-or-name)))
-			   (with-current-buffer buffer
-				 (or (equal major-mode 'vterm-mode)
-				 (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
+    :ensure t
+    :after vterm
+    :config
+    (setq vterm-toggle-fullscreen-p nil)
+    (setq vterm-toggle-scope 'project)
+    (add-to-list 'display-buffer-alist
+		 '((lambda (buffer-or-name _)
+		     (let ((buffer (get-buffer buffer-or-name)))
+		       (with-current-buffer buffer
+			 (or (equal major-mode 'vterm-mode)
+			     (string-prefix-p vterm-buffer-name (buffer-name buffer))))))
 		   (display-buffer-reuse-window display-buffer-at-bottom)
 		   ;;(display-buffer-reuse-window display-buffer-in-direction)
 		   ;;display-buffer-in-direction/direction/dedicated is added in emacs27
@@ -590,9 +591,9 @@ set latex master to nil to prevent compile in other file want the main.tex file 
 
 **** keybings
 #+begin_src emacs-lisp
-	  (my-leader-keys
-		"l" '(:ignore t :wk "Latex Functions")
-		"lp" '(org-latex-preview :wk "Latex Prevew of some envioment"))
+  (my-leader-keys
+    "l" '(:ignore t :wk "Latex Functions")
+    "lp" '(org-latex-preview :wk "Latex Prevew of some envioment"))
 #+end_src
 **** lsp
 #+begin_src emacs-lisp
